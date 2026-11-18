@@ -1,0 +1,398 @@
+-- ================================================================
+--  CROKS HUB  •  TELEPORT UNIVERSAL  (compacto)
+-- ================================================================
+local Players      = game:GetService("Players")
+local LocalPlayer  = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+
+local parent = (gethui and gethui()) or game:GetService("CoreGui")
+if parent:FindFirstChild("CroksHub") then parent.CroksHub:Destroy() end
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "CroksHub"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.DisplayOrder = 999999
+gui.Parent = parent
+
+local COL_BG      = Color3.fromRGB(18, 18, 24)
+local COL_SIDE    = Color3.fromRGB(24, 24, 32)
+local COL_CARD    = Color3.fromRGB(32, 32, 44)
+local COL_ACCENT  = Color3.fromRGB(130, 80, 240)
+local COL_ACCENT2 = Color3.fromRGB(70, 130, 255)
+local COL_DANGER  = Color3.fromRGB(200, 60, 60)
+local COL_TEXT    = Color3.fromRGB(240, 240, 250)
+local COL_MUTED   = Color3.fromRGB(150, 150, 170)
+
+-- ============ NOTIFICAÇÕES ============
+local notifHolder
+local function notify(text, success)
+    if not (notifHolder and notifHolder.Parent) then
+        notifHolder = Instance.new("Frame")
+        notifHolder.Name = "Notifs"
+        notifHolder.Size = UDim2.new(0, 220, 0, 0)
+        notifHolder.Position = UDim2.new(1, -236, 1, -16)
+        notifHolder.AnchorPoint = Vector2.new(0, 1)
+        notifHolder.BackgroundTransparency = 1
+        notifHolder.AutomaticSize = Enum.AutomaticSize.Y
+        notifHolder.Parent = gui
+        local l = Instance.new("UIListLayout")
+        l.SortOrder = Enum.SortOrder.LayoutOrder
+        l.VerticalAlignment = Enum.VerticalAlignment.Bottom
+        l.Padding = UDim.new(0, 4)
+        l.Parent = notifHolder
+    end
+    local n = Instance.new("Frame")
+    n.Size = UDim2.new(1, 0, 0, 26)
+    n.BackgroundColor3 = success and Color3.fromRGB(30, 130, 65) or COL_DANGER
+    n.BackgroundTransparency = 0.1
+    n.BorderSizePixel = 0
+    n.Parent = notifHolder
+    Instance.new("UICorner", n).CornerRadius = UDim.new(0, 5)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, -16, 1, 0)
+    lbl.Position = UDim2.new(0, 8, 0, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Font = Enum.Font.GothamMedium
+    lbl.TextSize = 11
+    lbl.TextColor3 = COL_TEXT
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Text = tostring(text)
+    lbl.Parent = n
+    task.delay(3, function()
+        if n.Parent then
+            TweenService:Create(n, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+            TweenService:Create(lbl, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+            task.wait(0.3)
+            n:Destroy()
+        end
+    end)
+end
+
+-- ============ JANELA PRINCIPAL ============
+local main = Instance.new("Frame")
+main.Name = "Main"
+main.Size = UDim2.new(0, 340, 0, 300)
+main.Position = UDim2.new(0.5, -170, 0.5, -150)
+main.BackgroundColor3 = COL_BG
+main.BorderSizePixel = 0
+main.Active = true
+main.Draggable = true
+main.Parent = gui
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 8)
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = COL_ACCENT
+stroke.Thickness = 1.2
+stroke.Transparency = 0.4
+stroke.Parent = main
+
+-- ============ HEADER ============
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1, 0, 0, 32)
+header.BackgroundColor3 = COL_SIDE
+header.BorderSizePixel = 0
+header.Parent = main
+Instance.new("UICorner", header).CornerRadius = UDim.new(0, 8)
+
+local htitle = Instance.new("TextLabel")
+htitle.Size = UDim2.new(1, -50, 1, 0)
+htitle.Position = UDim2.new(0, 10, 0, 0)
+htitle.BackgroundTransparency = 1
+htitle.Font = Enum.Font.GothamBlack
+htitle.TextSize = 12
+htitle.TextColor3 = COL_ACCENT
+htitle.TextXAlignment = Enum.TextXAlignment.Left
+htitle.Text = "CROKS HUB  •  TELEPORT"
+htitle.Parent = header
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 22, 0, 22)
+closeBtn.Position = UDim2.new(1, -27, 0.5, -11)
+closeBtn.BackgroundColor3 = COL_DANGER
+closeBtn.BorderSizePixel = 0
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 11
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Text = "X"
+closeBtn.Parent = header
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 5)
+closeBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
+
+-- ============ SIDEBAR ============
+local sidebar = Instance.new("Frame")
+sidebar.Size = UDim2.new(0, 86, 1, -40)
+sidebar.Position = UDim2.new(0, 6, 0, 34)
+sidebar.BackgroundColor3 = COL_SIDE
+sidebar.BorderSizePixel = 0
+sidebar.Parent = main
+Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0, 6)
+
+local sidebarLayout = Instance.new("UIListLayout")
+sidebarLayout.Padding = UDim.new(0, 4)
+sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+sidebarLayout.Parent = sidebar
+
+local sidebarPad = Instance.new("UIPadding")
+sidebarPad.PaddingTop    = UDim.new(0, 6)
+sidebarPad.PaddingBottom = UDim.new(0, 6)
+sidebarPad.PaddingLeft   = UDim.new(0, 5)
+sidebarPad.PaddingRight  = UDim.new(0, 5)
+sidebarPad.Parent = sidebar
+
+local function makeTabBtn(text, order)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(1, 0, 0, 28)
+    b.BackgroundColor3 = COL_CARD
+    b.BorderSizePixel = 0
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 10
+    b.TextColor3 = COL_TEXT
+    b.Text = text
+    b.LayoutOrder = order
+    b.Parent = sidebar
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 5)
+    return b
+end
+
+local tabTeleport = makeTabBtn("TELEPORT", 1)
+
+-- ============ CONTENT ============
+local content = Instance.new("Frame")
+content.Size = UDim2.new(1, -100, 1, -50)
+content.Position = UDim2.new(0, 98, 0, 34)
+content.BackgroundColor3 = COL_SIDE
+content.BorderSizePixel = 0
+content.Parent = main
+Instance.new("UICorner", content).CornerRadius = UDim.new(0, 6)
+
+local teleportPage = Instance.new("Frame")
+teleportPage.Size = UDim2.new(1, 0, 1, 0)
+teleportPage.BackgroundTransparency = 1
+teleportPage.Parent = content
+
+local pgTitle = Instance.new("TextLabel")
+pgTitle.Size = UDim2.new(1, -12, 0, 22)
+pgTitle.Position = UDim2.new(0, 6, 0, 4)
+pgTitle.BackgroundTransparency = 1
+pgTitle.Font = Enum.Font.GothamBold
+pgTitle.TextSize = 10
+pgTitle.TextColor3 = COL_TEXT
+pgTitle.TextXAlignment = Enum.TextXAlignment.Left
+pgTitle.Text = "JOGADORES"
+pgTitle.Parent = teleportPage
+
+-- botão stop cam (aparece quando specta)
+local stopCamBtn = Instance.new("TextButton")
+stopCamBtn.Size = UDim2.new(0, 0, 0, 0)
+stopCamBtn.Visible = false
+stopCamBtn.BackgroundColor3 = COL_DANGER
+stopCamBtn.BorderSizePixel = 0
+stopCamBtn.Font = Enum.Font.GothamBold
+stopCamBtn.TextSize = 9
+stopCamBtn.TextColor3 = Color3.fromRGB(255,255,255)
+stopCamBtn.Text = "STOP CAM"
+stopCamBtn.Parent = teleportPage
+Instance.new("UICorner", stopCamBtn).CornerRadius = UDim.new(0, 4)
+
+-- scroll
+local scroll = Instance.new("ScrollingFrame")
+scroll.Size = UDim2.new(1, -10, 1, -32)
+scroll.Position = UDim2.new(0, 5, 0, 28)
+scroll.BackgroundTransparency = 1
+scroll.BorderSizePixel = 0
+scroll.ScrollBarThickness = 3
+scroll.ScrollBarImageColor3 = COL_ACCENT
+scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scroll.Parent = teleportPage
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.Padding = UDim.new(0, 4)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Parent = scroll
+
+-- ============ SPECTATE ============
+local Spectating = { active = false, target = nil, conn = nil, activeBtn = nil }
+
+local function updateStopBtn()
+    if Spectating.active then
+        stopCamBtn.Visible = true
+        stopCamBtn.Size = UDim2.new(0, 68, 0, 16)
+        stopCamBtn.Position = UDim2.new(1, -74, 0, 6)
+        stopCamBtn.Text = "STOP"
+    else
+        stopCamBtn.Visible = false
+        stopCamBtn.Size = UDim2.new(0, 0, 0, 0)
+    end
+end
+
+local function stopSpectate()
+    if Spectating.conn then Spectating.conn:Disconnect() end
+    Spectating.conn = nil
+    Spectating.active = false
+    Spectating.target = nil
+    if Spectating.activeBtn then
+        pcall(function()
+            Spectating.activeBtn.Text = "CAM"
+            Spectating.activeBtn.BackgroundColor3 = COL_ACCENT
+        end)
+        Spectating.activeBtn = nil
+    end
+    local myChar = LocalPlayer.Character
+    if myChar then
+        local hum = myChar:FindFirstChildWhichIsA("Humanoid")
+        if hum then
+            workspace.CurrentCamera.CameraSubject = hum
+            workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+        end
+    end
+    updateStopBtn()
+end
+
+local function spectate(player, btn)
+    if Spectating.active and Spectating.target == player then
+        stopSpectate(); notify("Camera parada", true); return
+    end
+    stopSpectate()
+    if not player.Character then notify("Alvo sem personagem", false); return end
+    local hum = player.Character:FindFirstChildWhichIsA("Humanoid")
+    if not hum then notify("Alvo sem humanoid", false); return end
+    Spectating.active = true
+    Spectating.target = player
+    Spectating.activeBtn = btn
+    workspace.CurrentCamera.CameraSubject = hum
+    workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+    btn.Text = "STOP"
+    btn.BackgroundColor3 = COL_DANGER
+    Spectating.conn = player.CharacterAdded:Connect(function(char)
+        local newHum = char:WaitForChild("Humanoid", 5)
+        if newHum and Spectating.active and Spectating.target == player then
+            workspace.CurrentCamera.CameraSubject = newHum
+        end
+    end)
+    updateStopBtn()
+    notify("Camera: " .. player.Name, true)
+end
+
+stopCamBtn.MouseButton1Click:Connect(stopSpectate)
+
+-- ============ TP ============
+local function teleportTo(player)
+    if player == LocalPlayer then return false, "Você já é você" end
+    local myChar = LocalPlayer.Character
+    if not myChar then return false, "Sem personagem" end
+    local myHRP = myChar:FindFirstChild("HumanoidRootPart")
+    if not myHRP then return false, "Sem HRP" end
+    if not player.Character then return false, "Alvo sem personagem" end
+    local tHRP = player.Character:FindFirstChild("HumanoidRootPart")
+    if not tHRP then return false, "Alvo sem HRP" end
+    myHRP.CFrame = tHRP.CFrame * CFrame.new(0, 0, 3)
+    return true
+end
+
+-- ============ ROWS ============
+local rows = {}
+
+local function buildRow(player)
+    if player == LocalPlayer then return end
+    if rows[player] then return end
+
+    local row = Instance.new("Frame")
+    row.Name = "P_" .. player.UserId
+    row.Size = UDim2.new(1, 0, 0, 30)
+    row.BackgroundColor3 = COL_CARD
+    row.BorderSizePixel = 0
+    row.Parent = scroll
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 5)
+
+    local av = Instance.new("ImageLabel")
+    av.Size = UDim2.new(0, 22, 0, 22)
+    av.Position = UDim2.new(0, 4, 0.5, -11)
+    av.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    av.BorderSizePixel = 0
+    av.Image = "rbxthumb://type=AvatarHeadShot&id=" .. player.UserId .. "&w=48&h=48"
+    av.Parent = row
+    Instance.new("UICorner", av).CornerRadius = UDim.new(1, 0)
+
+    local nm = Instance.new("TextLabel")
+    nm.Size = UDim2.new(1, -140, 1, 0)
+    nm.Position = UDim2.new(0, 30, 0, 0)
+    nm.BackgroundTransparency = 1
+    nm.Font = Enum.Font.GothamSemibold
+    nm.TextSize = 10
+    nm.TextColor3 = COL_TEXT
+    nm.TextXAlignment = Enum.TextXAlignment.Left
+    nm.TextTruncate = Enum.TextTruncate.AtEnd
+    nm.Text = player.Name
+    nm.Parent = row
+
+    local tp = Instance.new("TextButton")
+    tp.Size = UDim2.new(0, 42, 0, 22)
+    tp.Position = UDim2.new(1, -92, 0.5, -11)
+    tp.BackgroundColor3 = COL_ACCENT2
+    tp.BorderSizePixel = 0
+    tp.Font = Enum.Font.GothamBold
+    tp.TextSize = 10
+    tp.TextColor3 = Color3.fromRGB(255, 255, 255)
+    tp.Text = "TP"
+    tp.Parent = row
+    Instance.new("UICorner", tp).CornerRadius = UDim.new(0, 4)
+    tp.MouseButton1Click:Connect(function()
+        local ok, err = teleportTo(player)
+        notify(ok and ("TP -> " .. player.Name) or (err or "Falhou"), ok)
+    end)
+
+    local cam = Instance.new("TextButton")
+    cam.Size = UDim2.new(0, 42, 0, 22)
+    cam.Position = UDim2.new(1, -46, 0.5, -11)
+    cam.BackgroundColor3 = COL_ACCENT
+    cam.BorderSizePixel = 0
+    cam.Font = Enum.Font.GothamBold
+    cam.TextSize = 10
+    cam.TextColor3 = Color3.fromRGB(255, 255, 255)
+    cam.Text = "CAM"
+    cam.Parent = row
+    Instance.new("UICorner", cam).CornerRadius = UDim.new(0, 4)
+    cam.MouseButton1Click:Connect(function() spectate(player, cam) end)
+
+    if Spectating.active and Spectating.target == player then
+        cam.Text = "STOP"
+        cam.BackgroundColor3 = COL_DANGER
+        Spectating.activeBtn = cam
+    end
+
+    rows[player] = { row = row, cam = cam }
+end
+
+local function removeRow(player)
+    local r = rows[player]
+    if r then r.row:Destroy(); rows[player] = nil end
+    if Spectating.active and Spectating.target == player then stopSpectate() end
+end
+
+for _, p in ipairs(Players:GetPlayers()) do buildRow(p) end
+Players.PlayerAdded:Connect(buildRow)
+Players.PlayerRemoving:Connect(removeRow)
+
+local function selectTab(btn)
+    tabTeleport.BackgroundColor3 = COL_CARD
+    btn.BackgroundColor3 = COL_ACCENT
+end
+selectTab(tabTeleport)
+tabTeleport.MouseButton1Click:Connect(function() selectTab(tabTeleport) end)
+
+LocalPlayer.CharacterAdded:Connect(function()
+    if Spectating.active then
+        if Spectating.target and Spectating.target.Character then
+            local hum = Spectating.target.Character:FindFirstChildWhichIsA("Humanoid")
+            if hum then workspace.CurrentCamera.CameraSubject = hum end
+        end
+    else
+        local hum = LocalPlayer.Character:WaitForChild("Humanoid", 5)
+        if hum then workspace.CurrentCamera.CameraSubject = hum end
+    end
+end)
+
+notify("CROKS HUB carregado!", true)
+print("[CROKS HUB] Compacto carregado.")
